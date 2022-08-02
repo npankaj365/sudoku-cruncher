@@ -1,31 +1,41 @@
 /********************************************************************************************
 *                      ******** SUDOKU CRUNCHER ********                                    *
 *             First Semester Project of 'Fundamentals of Programming'                       *
-*         Implemented by Anlisha Maharjan, Pankaj Niroula and Rohit Nepali                  *
 ********************************************************************************************/
 
 #define FULL 9 //FULL stands for No. of Rows or Cols in a full grid
 #define PART 3 //PART stands for No. of Rows or Cols in a region
+#define MAX_CHAR 255 //MAX_CHAR stands for maximum charactes in the file name
+#define EDITOR "kate"    
+
 #include <stdio.h>
-#include <conio.h>
 #include <stdlib.h>
+#include <string.h>
 
 //Function Prototypes
-void input(int grid[][FULL]); // For reading grid from file
+void input(int grid[][FULL], char *filename); // For reading grid from file
 void output(int grid[][FULL]); //For saving output in file
 void display(int grid[][FULL]); // For displaying sudoku grid
 int emptycells(int grid[][FULL], int free[][2]); // For finding the free cells
 int isvalid(int grid[][FULL], int row, int col); // For checking if the filling is valid
 int recur(int grid[][FULL], int free[][2], int f, int k); // For filling free cells, changing and backtracking
 
-int main(void)
+int main(int argc, char *argv[])
 {
     int grid[FULL][FULL];
     int free[70][2];
     int row,col,i,j,f,k=0;
 
     printf("*************************** SUDOKU CRUNCHER ************************************");
-    input(grid);
+    if(argc == 1) // Check if command line args passed
+        input(grid, NULL); // Input the values from a text editor if no command line args passed
+    else
+    {
+        char unsolved_file[MAX_CHAR];
+        strcpy(unsolved_file, argv[1]);
+        printf("Received file %s", unsolved_file);
+        input(grid, unsolved_file);
+    }
     printf("Before Solving the Sudoku puzzle: \n \n");
     display(grid);
 
@@ -40,21 +50,31 @@ int main(void)
 		display(grid);
 		output(grid);
     }
-    getch();
     return 0;
 }
 
-void input(int grid[][FULL])
+void input(int grid[][FULL], char filename[MAX_CHAR])
 {
     int row, col;
     FILE *fpt;
-    printf("\n Input the numbers in the notepad window, save and exit \
-            \n Press any key to continue ");
-    getch();
-    fpt = fopen("question.txt","w");
-    fclose(fpt);
-    system("notepad question.txt");
-    if((fpt = fopen("question.txt","r"))==NULL)
+    if(!filename)
+    {
+        printf("\n Input the numbers in the notepad window, save and exit \
+                \n Press any key to continue ");
+        fpt = fopen("question.txt","w");
+        char file_opener[MAX_CHAR + 20] = "";
+        strcpy(file_opener, EDITOR);
+        strcat(file_opener, " question.txt");
+        system(file_opener);
+        fclose(fpt);
+        fpt = fopen("question.txt","r");
+    }
+    else 
+    {
+        printf("\nReading from %s\n", filename);
+        fpt = fopen(filename, "r");
+    }
+    if(fpt == NULL)
     {
         printf("\n Error getting the grid \n \
                 \n Please save the grid in the notepad window correctly \n");
@@ -98,7 +118,10 @@ void output(int grid[][FULL])
 		fprintf(fpt,"%c",'\n');
 	}
 	fclose(fpt);
-	system("notepad answer.txt");
+    char file_opener[MAX_CHAR + 20] = "";
+    strcpy(file_opener, EDITOR);
+    strcat(file_opener, " answer.txt");
+    system(file_opener);
 }
 
 int emptycells(int grid[][FULL], int free[][2])
